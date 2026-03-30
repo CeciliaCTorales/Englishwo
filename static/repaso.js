@@ -1,5 +1,13 @@
 const LS_RATE = "palabras_speech_rate";
 const LS_VOICE = "palabras_speech_voice";
+const API_BASE_PREFIX =
+  location.pathname.endsWith("/repaso") || location.pathname.endsWith("/repaso/")
+    ? "../"
+    : "";
+
+function apiPath(path) {
+  return `${API_BASE_PREFIX}${path}`;
+}
 
 function getSpeechRate() {
   const r = parseFloat(localStorage.getItem(LS_RATE));
@@ -197,7 +205,7 @@ async function prefetchExpectedTranslation(p) {
   btnAnswerMic.disabled = true;
   elRefStatus.textContent = "Preparando referencia…";
   try {
-    const res = await fetch("traducir", {
+    const res = await fetch(apiPath("traducir"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ texto: w }),
@@ -356,7 +364,7 @@ function textoParaTraducirRepaso() {
 
 async function fetchDictionaryLine(w) {
   const res = await fetch(
-    `api/ejemplo-aleatorio?${new URLSearchParams({ w })}`
+    `${apiPath("api/ejemplo-aleatorio")}?${new URLSearchParams({ w })}`
   );
   return res.json().catch(() => ({}));
 }
@@ -487,7 +495,7 @@ async function reveal() {
   btnReveal.disabled = true;
   btnReveal.textContent = "…";
   try {
-    const res = await fetch("traducir", {
+    const res = await fetch(apiPath("traducir"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ texto }),
@@ -642,14 +650,14 @@ function startRepasoWithList(all) {
     }
     return;
   }
-  fetch("api/palabras")
+  fetch(apiPath("api/palabras"))
     .then((r) => {
       if (!r.ok) throw new Error("no api");
       return r.json();
     })
     .then(loadRepasoPalabras)
     .catch(() =>
-      fetch("api/palabras.json")
+      fetch(apiPath("api/palabras.json"))
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then(loadRepasoPalabras)
         .catch(() => {

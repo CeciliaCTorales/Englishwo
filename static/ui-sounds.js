@@ -123,6 +123,16 @@
       tone(783.99, 0.11, 0.045, "sine", 0.22);
     },
 
+    learned() {
+      resume();
+      if (!ctx || isMuted()) return;
+      const notes = [659.25, 783.99, 987.77, 1318.51];
+      notes.forEach((f, i) => {
+        tone(f, 0.1, 0.042 - i * 0.004, "triangle", i * 0.07);
+      });
+      tone(1567.98, 0.14, 0.03, "sine", 0.29);
+    },
+
     fail() {
       resume();
       tone(120, 0.16, 0.07, "sawtooth");

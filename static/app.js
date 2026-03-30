@@ -107,8 +107,8 @@ function maybeDailyNotify() {
   const last = localStorage.getItem("palabras_notify_day");
   if (last === today) return;
   try {
-    new Notification("Repasa inglés", {
-      body: "Abre New Words y revisa o repasa tu vocabulario.",
+    new Notification("Recordatorio diario de Chacal", {
+      body: "Repasa inglés hoy: there are only a few hearts left in Greece.",
       tag: "palabras-daily",
     });
   } catch {
@@ -124,11 +124,7 @@ function wireImportExport() {
     const file = input.files && input.files[0];
     input.value = "";
     if (!file) return;
-    const replace = window.confirm(
-      "¿Reemplazar TODA la lista con este archivo?\n\n" +
-        "Aceptar = reemplazar todo\n" +
-        "Cancelar = solo añadir filas al final (combinar)"
-    );
+    const replace = false;
     if (modoEstatico && window.PalabrasStatic) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -170,11 +166,7 @@ function wireImportExport() {
             staticStore
           );
           mostrar();
-          estado(
-            replace
-              ? `Lista reemplazada (${palabrasGlobal.length} filas)`
-              : `Filas combinadas (${palabrasGlobal.length} en total)`
-          );
+          estado(`Datos importados sin borrar existentes (${palabrasGlobal.length} en total)`);
           sfx("success");
         } catch {
           estado("No se pudo leer el CSV");
@@ -190,14 +182,14 @@ function wireImportExport() {
     }
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("mode", replace ? "replace" : "merge");
+    fd.append("mode", "merge");
     fetch("api/import", { method: "POST", body: fd })
       .then((r) => r.json())
       .then((data) => {
         if (data.ok && Array.isArray(data.data)) {
           palabrasGlobal = data.data;
           mostrar();
-          estado(`Importadas ${data.imported ?? 0} filas`);
+          estado(`Importadas ${data.imported ?? 0} filas sin borrar las anteriores`);
           sfx("success");
         } else {
           estado(data.error || "Importación fallida");
@@ -229,7 +221,7 @@ function wireNotifyButton() {
       return;
     }
     maybeDailyNotify();
-    estado("Recordatorio diario activo (una vez al día al abrir la página)");
+    estado("Recordatorio diario de Chacal activo (una vez al día al abrir la página)");
     sfx("pop");
   });
 }
@@ -700,10 +692,19 @@ function enviar(texto, force) {
 
 function mostrar() {
   const lista = document.getElementById("lista");
+  const listaAprendidas = document.getElementById("lista-aprendidas");
+  const counterStatus = document.getElementById("words-counter-status");
   lista.innerHTML = "";
+  if (listaAprendidas) listaAprendidas.innerHTML = "";
 
   actualizarContadorPalabras();
   renderHappyRanking();
+
+  const totalPendientes = palabrasGlobal.filter((p) => !p.aprendido).length;
+  const totalAprendidas = palabrasGlobal.filter((p) => !!p.aprendido).length;
+  if (counterStatus) {
+    counterStatus.textContent = `Pendientes ${totalPendientes} · Aprendidas ${totalAprendidas}`;
+  }
 
   if (palabrasGlobal.length === 0) {
     lista.innerHTML = `
@@ -734,14 +735,20 @@ function mostrar() {
     return;
   }
 
-  const ordenados = [...filtradas].sort((a, b) => b.id - a.id);
+  const pendientes = filtradas.filter((p) => !p.aprendido);
+  const aprendidas = filtradas.filter((p) => !!p.aprendido);
+  const ordenadosPendientes = [...pendientes].sort((a, b) => b.id - a.id);
+  const ordenadasAprendidas = [...aprendidas].sort((a, b) => b.id - a.id);
 
-  ordenados.forEach((p, index) => {
+  const renderCard = (p, index, aprendidaCard) => {
     const div = document.createElement("div");
-    div.className = "card" + (index === 0 ? " card--ultimo" : "");
+    div.className =
+      "card" +
+      (index === 0 && !aprendidaCard ? " card--ultimo" : "") +
+      (aprendidaCard ? " card--aprendida" : "");
 
     const marcaUltimo =
-      index === 0
+      index === 0 && !aprendidaCard
         ? `<div class="card-latest" role="status">Lo último que dije</div>`
         : "";
 
@@ -792,6 +799,9 @@ function mostrar() {
         <button type="button" class="editar" aria-label="Editar">Editar</button>
         <button type="button" class="borrar" aria-label="Borrar">Borrar</button>
       </div>
+      <div class="card-learn-wrap">
+        <button type="button" class="btn-aprendida" data-id="${p.id}" aria-label="${aprendidaCard ? "Mover a pendientes" : "Marcar como aprendida"}">${aprendidaCard ? "↩ Volver a pendientes" : "🎉 ¡Aprendida!"}</button>
+      </div>
     `;
 
     const tradWrap = div.querySelector(".card-trad-wrap");
@@ -826,12 +836,88 @@ function mostrar() {
       activarEdicion(div, p);
     });
 
-    lista.appendChild(div);
+    div.querySelector(".btn-aprendida").addEventListener("click", () => {
+      if (!aprendidaCard) sfx("learned");
+      else sfx("tap");
+      marcarAprendida(p.id, !aprendidaCard);
+    });
+
+    return div;
+  };
+
+  ordenadosPendientes.forEach((p, index) => {
+    lista.appendChild(renderCard(p, index, false));
   });
+  if (listaAprendidas) {
+    if (ordenadasAprendidas.length === 0) {
+      listaAprendidas.innerHTML =
+        '<div class="empty-state empty-state--small"><p>Todavía no marcaste palabras como aprendidas.</p></div>';
+    } else {
+      ordenadasAprendidas.forEach((p, index) => {
+        listaAprendidas.appendChild(renderCard(p, index, true));
+      });
+    }
+  }
 
   window.__palabrasStats = palabrasGlobal;
   if (typeof renderStatsChart === "function") renderStatsChart(palabrasGlobal);
   if (typeof renderProgressMini === "function") renderProgressMini(palabrasGlobal);
+}
+
+function marcarAprendida(id, aprendido) {
+  const nid = Number(id);
+  const triggerConfetti = () => {
+    const card = document.querySelector(
+      `.card .btn-aprendida[data-id="${nid}"]`
+    );
+    if (card) {
+      const wrap = card.closest(".card");
+      if (wrap) {
+        wrap.classList.remove("card--confetti");
+        void wrap.offsetWidth;
+        wrap.classList.add("card--confetti");
+      }
+    }
+  };
+  if (modoEstatico && window.PalabrasStatic) {
+    const idx = staticStore.additions.findIndex((a) => Number(a.id) === nid);
+    if (idx >= 0) {
+      staticStore.additions[idx] = {
+        ...staticStore.additions[idx],
+        aprendido: !!aprendido,
+      };
+    } else {
+      const prev = staticStore.edits[String(nid)] || {};
+      staticStore.edits[String(nid)] = { ...prev, aprendido: !!aprendido };
+    }
+    window.PalabrasStatic.persist(staticStore);
+    palabrasGlobal = window.PalabrasStatic.rebuildGlobal(
+      palabrasBaseCsv,
+      staticStore
+    );
+    mostrar();
+    if (aprendido) triggerConfetti();
+    estado(aprendido ? "Archivada como aprendida ✨" : "Regresó a pendientes");
+    return;
+  }
+  fetch(`editar/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ aprendido: !!aprendido }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.ok && Array.isArray(data.data)) {
+        palabrasGlobal = data.data;
+        mostrar();
+        if (aprendido) triggerConfetti();
+        estado(aprendido ? "Archivada como aprendida ✨" : "Regresó a pendientes");
+      }
+    })
+    .catch(() => {
+      estado("No se pudo mover la palabra");
+      sfx("fail");
+    });
 }
 
 function toggleTraduccion(btn, wrap, textEl, palabra) {
@@ -1192,7 +1278,7 @@ function renderHappyRanking() {
   wireSoundToggle();
   wireSfxVolume();
   wireEjemploSugerido();
-  maybeDailyNotify();
+  // recordatorios desactivados a pedido del usuario
 })();
 
 function actualizarCuentaRegresiva() {

@@ -76,6 +76,9 @@
         fecha: o.fecha || "",
         tema: o.tema || "",
         etiquetas: o.etiquetas || "",
+        aprendido: ["1", "true", "si", "sí", "yes"].includes(
+          String(o.aprendido || "").toLowerCase()
+        ),
       });
     }
     return out;
@@ -172,6 +175,7 @@
               fecha: p.fecha || "",
               tema: p.tema || "",
               etiquetas: p.etiquetas || "",
+              aprendido: !!p.aprendido,
             }));
           }
         }

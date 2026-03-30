@@ -111,8 +111,7 @@
         </div>
         <div class="hero__copy">
           <h1 id="hero-title" class="hero-title">Nuevas palabras en inglés</h1>
-          <p class="hero-lead">Di la <strong>palabra principal</strong> en inglés; puedes seguir con una <strong>frase de ejemplo</strong>. Todo se guarda en un archivo <strong>CSV</strong> en la carpeta <code>data</code>.</p>
-          <p class="hero-quote-en notranslate" lang="en" translate="no">There are only a few hearts left in Greece.</p>
+          <p class="hero-lead">Di la <strong>palabra principal</strong> en inglés; puedes seguir con una <strong>frase de ejemplo</strong>. Todo se guarda en tus <strong>datos</strong> de aprendizaje.</p>
 
           <div class="recorder-panel">
             <button type="button" id="btn" class="btn-record">
@@ -164,12 +163,11 @@
 
     <nav class="tools-bar" aria-label="Herramientas">
       <a class="tools-bar__link" href="repaso.html">Modo repaso</a>
-      <a class="tools-bar__link" href="api/export.csv">Exportar CSV</a>
+      <a class="tools-bar__link" href="api/export.csv">Exportar datos</a>
       <label class="tools-bar__file">
-        <span class="tools-bar__btn tools-bar__btn--file">Importar CSV</span>
+        <span class="tools-bar__btn tools-bar__btn--file">Importar datos</span>
         <input type="file" id="import-file" accept=".csv,text/csv" hidden>
       </label>
-      <button type="button" class="tools-bar__btn" id="btn-notify">Recordatorio diario</button>
       <label class="tools-bar-sound">
         <input type="checkbox" id="sounds-enabled" checked aria-label="Activar sonidos de la interfaz">
         <span>Sonidos</span>
@@ -186,7 +184,7 @@
           <span class="section-title__icon" aria-hidden="true">📝</span>
           Tu lista
         </h2>
-        <span class="section-hint">Cada fila: palabra + ejemplo · orden por lo más reciente</span>
+        <span id="words-counter-status" class="section-hint">Pendientes 0 · Aprendidas 0</span>
       </div>
       <div class="search-box">
         <label for="search-words" class="sr-only">Buscar palabra o frase</label>
@@ -200,6 +198,15 @@
         >
       </div>
       <div id="lista" class="lista"></div>
+
+      <div class="section-head section-head--learned">
+        <h2 id="words-learned-heading" class="section-title">
+          <span class="section-title__icon" aria-hidden="true">🎓</span>
+          Aprendidas
+        </h2>
+        <span class="section-hint">Aquí se archivan las palabras que ya dominás</span>
+      </div>
+      <div id="lista-aprendidas" class="lista lista--learned"></div>
     </section>
     </div>
 

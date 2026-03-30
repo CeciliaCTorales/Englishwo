@@ -96,7 +96,7 @@ DATA_FILE = DATA_DIR / "palabras.csv"
 BACKUP_DIR = DATA_DIR / "backups"
 LEGACY_JSON = DATA_DIR / "palabras.json"
 
-CSV_FIELDS = ["id", "palabra", "ejemplo", "dicho", "fecha", "tema", "etiquetas"]
+CSV_FIELDS = ["id", "palabra", "ejemplo", "dicho", "fecha", "tema", "etiquetas", "aprendido"]
 BACKUP_KEEP = 10
 IMPORT_MAX_BYTES = 2 * 1024 * 1024
 
@@ -163,10 +163,12 @@ def _row_from_dict(p):
         "fecha": p.get("fecha", "") or "",
         "tema": p.get("tema", "") or "",
         "etiquetas": p.get("etiquetas", "") or "",
+        "aprendido": "1" if bool(p.get("aprendido")) else "0",
     }
 
 
 def _entry_from_row(row, rid):
+    aprendido_raw = (row.get("aprendido") or "").strip().lower()
     return {
         "id": rid,
         "palabra": _capitalize_first_letter((row.get("palabra") or "").strip()),
@@ -175,6 +177,7 @@ def _entry_from_row(row, rid):
         "fecha": (row.get("fecha") or "").strip(),
         "tema": (row.get("tema") or "").strip(),
         "etiquetas": (row.get("etiquetas") or "").strip(),
+        "aprendido": aprendido_raw in ("1", "true", "si", "sí", "yes"),
     }
 
 
@@ -219,6 +222,7 @@ def load_palabras():
                         "fecha": (row.get("fecha") or "").strip(),
                         "tema": (row.get("tema") or "").strip(),
                         "etiquetas": (row.get("etiquetas") or "").strip(),
+                        "aprendido": (row.get("aprendido") or "").strip().lower() in ("1", "true", "si", "sí", "yes"),
                     })
         except (OSError, ValueError) as e:
             print("Carga CSV:", e)
@@ -240,6 +244,7 @@ def load_palabras():
                         "fecha": p.get("fecha", "") or "",
                         "tema": "",
                         "etiquetas": "",
+                        "aprendido": False,
                     }
                     for p in raw
                     if isinstance(p, dict)
@@ -435,8 +440,18 @@ def home():
     return render_template("index.html")
 
 
+@app.route("/index.html")
+def home_html():
+    return render_template("index.html")
+
+
 @app.route("/repaso")
 def repaso():
+    return render_template("repaso.html")
+
+
+@app.route("/repaso.html")
+def repaso_html():
     return render_template("repaso.html")
 
 
@@ -546,6 +561,7 @@ def procesar():
         "fecha": fecha,
         "tema": tema,
         "etiquetas": etiquetas,
+        "aprendido": False,
     })
     save_palabras()
     return jsonify({"ok": True, "data": palabras})
@@ -578,6 +594,8 @@ def editar(id):
                 p["tema"] = _normalize_meta_tema(data.get("tema"))
             if "etiquetas" in data:
                 p["etiquetas"] = _normalize_meta_etiquetas(data.get("etiquetas"))
+            if "aprendido" in data:
+                p["aprendido"] = bool(data.get("aprendido"))
     save_palabras()
     return jsonify({"ok": True, "data": palabras})
 
