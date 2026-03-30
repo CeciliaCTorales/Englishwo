@@ -611,6 +611,10 @@ if (window.speechSynthesis) {
 
 function loadRepasoPalabras(data) {
   const all = data.ok && Array.isArray(data.data) ? data.data : [];
+  startRepasoWithList(all);
+}
+
+function startRepasoWithList(all) {
   const tag = paramsTag();
   const filt = tagFilter(tag);
   const list = all.filter((p) => (p.palabra || "").trim() && filt(p));
@@ -626,19 +630,32 @@ function loadRepasoPalabras(data) {
   nextCard();
 }
 
-fetch("api/palabras")
-  .then((r) => {
-    if (!r.ok) throw new Error("no api");
-    return r.json();
-  })
-  .then(loadRepasoPalabras)
-  .catch(() =>
-    fetch("api/palabras.json")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then(loadRepasoPalabras)
-      .catch(() => {
-        elEmpty.hidden = false;
-        elEmpty.querySelector("p").textContent =
-          "No se pudo cargar la lista. En GitHub Pages usá api/palabras.json o abrí el sitio con Flask.";
-      })
-  );
+(async function cargarRepaso() {
+  if (window.PalabrasStatic && window.PalabrasStatic.loadInitial) {
+    try {
+      const r = await window.PalabrasStatic.loadInitial();
+      startRepasoWithList(Array.isArray(r.palabras) ? r.palabras : []);
+    } catch {
+      elEmpty.hidden = false;
+      elEmpty.querySelector("p").textContent =
+        "No se pudo cargar la lista. Revisá data/palabras.csv en el repositorio.";
+    }
+    return;
+  }
+  fetch("api/palabras")
+    .then((r) => {
+      if (!r.ok) throw new Error("no api");
+      return r.json();
+    })
+    .then(loadRepasoPalabras)
+    .catch(() =>
+      fetch("api/palabras.json")
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then(loadRepasoPalabras)
+        .catch(() => {
+          elEmpty.hidden = false;
+          elEmpty.querySelector("p").textContent =
+            "No se pudo cargar la lista. En GitHub Pages usá data/palabras.csv o Flask.";
+        })
+    );
+})();

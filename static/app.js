@@ -2,6 +2,9 @@ let recognition;
 let grabando = false;
 let textoAcumulado = "";
 let palabrasGlobal = [];
+let modoEstatico = false;
+let staticStore = { additions: [], deletedIds: new Set(), edits: {} };
+let palabrasBaseCsv = [];
 let busquedaActual = "";
 let pendingEjemploId = null;
 let textoEjemploGenerado = "";
@@ -126,6 +129,65 @@ function wireImportExport() {
         "Aceptar = reemplazar todo\n" +
         "Cancelar = solo añadir filas al final (combinar)"
     );
+    if (modoEstatico && window.PalabrasStatic) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const rows = window.PalabrasStatic.csvTextToObjects(String(reader.result || ""));
+          if (!rows.length) {
+            estado("CSV vacío o no válido");
+            sfx("fail");
+            return;
+          }
+          if (replace) {
+            staticStore = {
+              additions: [],
+              deletedIds: new Set(),
+              edits: {},
+            };
+            palabrasBaseCsv = rows;
+          } else {
+            let maxId = 0;
+            for (const p of palabrasBaseCsv) {
+              const n = Number(p.id);
+              if (Number.isFinite(n)) maxId = Math.max(maxId, n);
+            }
+            for (const a of staticStore.additions) {
+              const n = Number(a.id);
+              if (Number.isFinite(n)) maxId = Math.max(maxId, n);
+            }
+            for (const row of rows) {
+              maxId += 1;
+              staticStore.additions.push({
+                ...row,
+                id: maxId,
+              });
+            }
+          }
+          window.PalabrasStatic.persist(staticStore);
+          palabrasGlobal = window.PalabrasStatic.rebuildGlobal(
+            palabrasBaseCsv,
+            staticStore
+          );
+          mostrar();
+          estado(
+            replace
+              ? `Lista reemplazada (${palabrasGlobal.length} filas)`
+              : `Filas combinadas (${palabrasGlobal.length} en total)`
+          );
+          sfx("success");
+        } catch {
+          estado("No se pudo leer el CSV");
+          sfx("fail");
+        }
+      };
+      reader.onerror = () => {
+        estado("Error al leer el archivo");
+        sfx("fail");
+      };
+      reader.readAsText(file, "UTF-8");
+      return;
+    }
     const fd = new FormData();
     fd.append("file", file);
     fd.append("mode", replace ? "replace" : "merge");
@@ -199,7 +261,13 @@ function toggle() {
 }
 
 function iniciar() {
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    estado("Este navegador no soporta reconocimiento de voz (probá Chrome o Edge).");
+    sfx("fail");
+    return;
+  }
+  recognition = new SR();
 
   recognition.lang = "en-US";
   recognition.interimResults = false;
@@ -237,7 +305,41 @@ function iniciar() {
     }
   };
 
-  recognition.start();
+  recognition.onerror = (ev) => {
+    const code = ev && ev.error;
+    const map = {
+      "not-allowed": "Permiso de micrófono denegado o bloqueado.",
+      "aborted": "Reconocimiento cancelado.",
+      "audio-capture": "No se detecta micrófono o está en uso.",
+      "network": "Error de red del servicio de voz (prueba otra red o más tarde).",
+      "no-speech": "No se oyó habla; acercate al mic y probá de nuevo.",
+      "service-not-allowed": "El navegador no permite el reconocimiento de voz aquí.",
+    };
+    estado(map[code] || `Voz: ${code || "error"}`);
+    sfx("fail");
+    grabando = false;
+    btn.classList.remove("recording");
+    const lab = btn.querySelector(".btn-record-label");
+    if (lab) lab.textContent = "Grabar";
+    try {
+      recognition.onend = null;
+      recognition.stop();
+    } catch {
+      /* */
+    }
+  };
+
+  recognition.onnomatch = () => {
+    estado("No se reconoció el audio en inglés; probá de nuevo más claro.");
+  };
+
+  try {
+    recognition.start();
+  } catch (e) {
+    estado("No se pudo iniciar el micrófono. ¿HTTPS y permisos OK?");
+    sfx("fail");
+    grabando = false;
+  }
 }
 
 function flushSesion() {
@@ -366,6 +468,32 @@ async function generarEjemploSugerido() {
 function guardarEjemploSugerido() {
   if (!pendingEjemploId || !textoEjemploGenerado) return;
   sfx("tap");
+  const pid = Number(pendingEjemploId);
+  if (modoEstatico && window.PalabrasStatic) {
+    const idx = staticStore.additions.findIndex((a) => a.id === pid);
+    if (idx >= 0) {
+      staticStore.additions[idx] = {
+        ...staticStore.additions[idx],
+        ejemplo: textoEjemploGenerado,
+      };
+    } else {
+      const prev = staticStore.edits[String(pid)] || {};
+      staticStore.edits[String(pid)] = {
+        ...prev,
+        ejemplo: textoEjemploGenerado,
+      };
+    }
+    window.PalabrasStatic.persist(staticStore);
+    palabrasGlobal = window.PalabrasStatic.rebuildGlobal(
+      palabrasBaseCsv,
+      staticStore
+    );
+    mostrar();
+    estado("Oración guardada (en el navegador)");
+    sfx("success");
+    hideEjemploSugerido();
+    return;
+  }
   fetch(`editar/${pendingEjemploId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -417,7 +545,108 @@ function metaFromForm() {
   };
 }
 
+function stripEdgePunct(s) {
+  s = String(s || "").trim();
+  const punct = `!"#$%&'()*+,-./:;<=>?@[\\]^_\`{|}~¿¡`;
+  while (s && punct.includes(s[0])) s = s.slice(1).trim();
+  while (s && punct.includes(s[s.length - 1])) s = s.slice(0, -1).trim();
+  return s;
+}
+
+function capitalizeFirst(s) {
+  s = String(s || "").trim();
+  if (!s) return s;
+  return s[0].toUpperCase() + s.slice(1);
+}
+
+function splitTextoComoServidor(raw) {
+  const partes = String(raw || "")
+    .trim()
+    .split(/\s+/);
+  if (!partes.length) return ["", ""];
+  const palabra = capitalizeFirst(stripEdgePunct(partes[0]));
+  const ejemplo = partes.slice(1).join(" ").trim();
+  return [palabra, ejemplo];
+}
+
+function fechaHoyES() {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = d.getFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+
+function nextIdPalabra() {
+  let m = 0;
+  for (const p of palabrasGlobal) {
+    const n = Number(p.id);
+    if (Number.isFinite(n)) m = Math.max(m, n);
+  }
+  return m + 1;
+}
+
+function enviarSinServidor(texto, force) {
+  if (!window.PalabrasStatic) {
+    estado("Esta página necesita el servidor Flask para guardar.");
+    sfx("fail");
+    return;
+  }
+  const { tema, etiquetas } = metaFromForm();
+  const raw = String(texto || "").trim();
+  const [palabra, ejemplo] = splitTextoComoServidor(raw);
+  if (!palabra) {
+    estado("No quedó texto reconocido. Volvé a grabar o probá en un lugar más silencioso.");
+    sfx("fail");
+    return;
+  }
+  const key = palabra.toLowerCase();
+  if (!force) {
+    const count = palabrasGlobal.filter(
+      (p) => (p.palabra || "").trim().toLowerCase() === key
+    ).length;
+    if (count > 0) {
+      const ok = window.confirm(
+        `Ya tenés ${count} entrada(s) con «${palabra}». ¿Añadir otra igual?`
+      );
+      if (!ok) {
+        estado("No guardado (duplicado)");
+        sfx("tap");
+        return;
+      }
+    }
+  }
+  const id = nextIdPalabra();
+  const entry = {
+    id,
+    palabra,
+    ejemplo,
+    dicho: raw,
+    fecha: fechaHoyES(),
+    tema: tema.trim(),
+    etiquetas: etiquetas.trim(),
+  };
+  staticStore.additions.push(entry);
+  window.PalabrasStatic.persist(staticStore);
+  palabrasGlobal = window.PalabrasStatic.rebuildGlobal(
+    palabrasBaseCsv,
+    staticStore
+  );
+  mostrar();
+  estado(
+    modoEstatico
+      ? "Guardado en este navegador (GitHub Pages no tiene servidor)"
+      : "Guardado localmente (sin servidor)"
+  );
+  sfx("success");
+  offerEjemploSugeridoSiFalta(palabrasGlobal);
+}
+
 function enviar(texto, force) {
+  if (modoEstatico) {
+    enviarSinServidor(texto, force);
+    return;
+  }
   const { tema, etiquetas } = metaFromForm();
   fetch("procesar", {
     method: "POST",
@@ -438,6 +667,14 @@ function enviar(texto, force) {
         return;
       }
       if (!res.ok || !data.ok) {
+        if (res.status === 404 || res.status === 405) {
+          modoEstatico = true;
+          if (!palabrasBaseCsv.length && palabrasGlobal.length) {
+            palabrasBaseCsv = palabrasGlobal.map((p) => ({ ...p }));
+          }
+          enviarSinServidor(texto, force);
+          return;
+        }
         estado(data.message || data.error || "No se pudo guardar");
         sfx("fail");
         return;
@@ -449,8 +686,15 @@ function enviar(texto, force) {
       offerEjemploSugeridoSiFalta(data.data);
     })
     .catch(() => {
-      estado("Error de red");
-      sfx("fail");
+      if (!window.PalabrasStatic) {
+        estado("Error de red");
+        sfx("fail");
+        return;
+      }
+      if (!palabrasBaseCsv.length && palabrasGlobal.length) {
+        palabrasBaseCsv = palabrasGlobal.map((p) => ({ ...p }));
+      }
+      enviarSinServidor(texto, force);
     });
 }
 
@@ -670,6 +914,26 @@ function escapeAttr(s) {
 }
 
 function borrar(id) {
+  const nid = Number(id);
+  if (modoEstatico && window.PalabrasStatic) {
+    let removed = false;
+    staticStore.additions = staticStore.additions.filter((a) => {
+      if (a.id === nid) {
+        removed = true;
+        return false;
+      }
+      return true;
+    });
+    if (!removed) staticStore.deletedIds.add(nid);
+    window.PalabrasStatic.persist(staticStore);
+    palabrasGlobal = window.PalabrasStatic.rebuildGlobal(
+      palabrasBaseCsv,
+      staticStore
+    );
+    mostrar();
+    sfx("pop");
+    return;
+  }
   fetch(`borrar/${id}`, { method: "DELETE" })
     .then((res) => res.json())
     .then((data) => {
@@ -711,6 +975,35 @@ function activarEdicion(div, p) {
     const nuevoEjemplo = div.querySelector("#ejemplo").value;
     const nuevoTema = div.querySelector("#tema").value;
     const nuevasEtiquetas = div.querySelector("#etiquetas").value;
+
+    if (modoEstatico && window.PalabrasStatic) {
+      const pid = Number(p.id);
+      const idx = staticStore.additions.findIndex((a) => a.id === pid);
+      if (idx >= 0) {
+        staticStore.additions[idx] = {
+          ...staticStore.additions[idx],
+          palabra: nuevaPalabra,
+          ejemplo: nuevoEjemplo,
+          tema: nuevoTema,
+          etiquetas: nuevasEtiquetas,
+        };
+      } else {
+        staticStore.edits[String(pid)] = {
+          palabra: nuevaPalabra,
+          ejemplo: nuevoEjemplo,
+          tema: nuevoTema,
+          etiquetas: nuevasEtiquetas,
+        };
+      }
+      window.PalabrasStatic.persist(staticStore);
+      palabrasGlobal = window.PalabrasStatic.rebuildGlobal(
+        palabrasBaseCsv,
+        staticStore
+      );
+      mostrar();
+      sfx("success");
+      return;
+    }
 
     fetch(`editar/${p.id}`, {
       method: "PUT",
@@ -850,34 +1143,57 @@ function renderHappyRanking() {
     .join("");
 }
 
-fetch("api/palabras")
-  .then((r) => {
-    if (!r.ok) throw new Error("no api");
-    return r.json();
-  })
-  .then((data) => {
-    if (data.ok && Array.isArray(data.data)) palabrasGlobal = data.data;
-  })
-  .catch(() =>
-    fetch("api/palabras.json")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => {
+(async function iniciarDatosPalabras() {
+  if (window.PalabrasStatic && window.PalabrasStatic.loadInitial) {
+    try {
+      const r = await window.PalabrasStatic.loadInitial();
+      modoEstatico = !!r.modoEstatico;
+      palabrasGlobal = Array.isArray(r.palabras) ? r.palabras : [];
+      palabrasBaseCsv = Array.isArray(r.baseCsv) ? r.baseCsv : [];
+      staticStore = r.store || staticStore;
+      if (!(staticStore.deletedIds instanceof Set)) {
+        const arr = staticStore.deletedIds;
+        staticStore.deletedIds = new Set(
+          Array.isArray(arr) ? arr.map(Number).filter(Number.isFinite) : []
+        );
+      }
+    } catch (err) {
+      console.warn("loadInitial", err);
+    }
+  } else {
+    try {
+      const r = await fetch("api/palabras");
+      if (r.ok) {
+        const data = await r.json();
         if (data.ok && Array.isArray(data.data)) palabrasGlobal = data.data;
-      })
-      .catch(() => {})
-  )
-  .finally(() => {
-    mostrar();
-    actualizarCuentaRegresiva();
-    initVoiceControls();
-    wireSearch();
-    wireImportExport();
-    wireNotifyButton();
-    wireSoundToggle();
-    wireSfxVolume();
-    wireEjemploSugerido();
-    maybeDailyNotify();
-  });
+      }
+    } catch {
+      /* */
+    }
+    if (!palabrasGlobal.length) {
+      try {
+        const rj = await fetch("api/palabras.json");
+        if (rj.ok) {
+          const data = await rj.json();
+          if (data.ok && Array.isArray(data.data)) palabrasGlobal = data.data;
+        }
+      } catch {
+        /* */
+      }
+    }
+  }
+
+  mostrar();
+  actualizarCuentaRegresiva();
+  initVoiceControls();
+  wireSearch();
+  wireImportExport();
+  wireNotifyButton();
+  wireSoundToggle();
+  wireSfxVolume();
+  wireEjemploSugerido();
+  maybeDailyNotify();
+})();
 
 function actualizarCuentaRegresiva() {
   const line = document.getElementById("deadline-line");
