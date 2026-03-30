@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repaso — Palabras</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="theme-cute repaso-page">
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient__photo"></div>
+    <div class="ambient__veil"></div>
+    <div class="ambient__glow ambient__glow--a"></div>
+    <div class="ambient__glow ambient__glow--b"></div>
+    <div class="ambient__grid"></div>
+    <div class="ambient__noise"></div>
+  </div>
+
+  <header class="site-header repaso-header">
+    <div class="container header-inner repaso-header__inner">
+      <div class="repaso-header__row">
+        <a href="/" class="repaso-back">← Lista principal</a>
+        <label class="repaso-sound-toggle">
+          <input type="checkbox" id="sounds-enabled" checked>
+          <span>Sonidos mágicos</span>
+        </label>
+        <label class="repaso-sfx-vol">
+          <span class="repaso-sfx-vol__label">Volumen</span>
+          <input type="range" id="sfx-volume" value="100">
+        </label>
+      </div>
+      <p class="repaso-title">Modo repaso</p>
+    </div>
+  </header>
+
+  <main class="container repaso-main">
+    <p id="repaso-filter" class="repaso-filter" hidden></p>
+    <div id="repaso-empty" class="repaso-empty" hidden>
+      <p>No hay entradas para repasar. <a href="/">Añade palabras</a> o quita el filtro de etiqueta en la URL.</p>
+    </div>
+
+    <div id="repaso-card" class="repaso-card" hidden>
+      <p class="repaso-card__label">Palabra en inglés</p>
+      <p id="repaso-word" class="repaso-card__word"></p>
+
+      <p id="repaso-example-label" class="repaso-sublabel" hidden>Ejemplo de oración (tu lista)</p>
+      <p id="repaso-example" class="repaso-card__example"></p>
+
+      <div class="repaso-random-wrap">
+        <p class="repaso-card__label">Más ejemplos de oraciones</p>
+        <p id="repaso-random-hint" class="repaso-random-hint">
+          Si no tenés frase en tu lista, se muestra sola una oración del diccionario; el botón pide otra al azar.
+        </p>
+        <button type="button" id="repaso-random-example" class="repaso-btn repaso-btn--random">
+          Otra oración al azar
+        </button>
+        <p id="repaso-random-line" class="repaso-random-line" hidden></p>
+      </div>
+
+      <div id="repaso-trad-wrap" class="repaso-trad" hidden>
+        <p class="repaso-card__label">Traducción</p>
+        <p id="repaso-trad" class="repaso-card__trad"></p>
+      </div>
+
+      <div class="repaso-voice-answer">
+        <p class="repaso-card__label">Decí la traducción en castellano</p>
+        <p id="repaso-ref-status" class="repaso-ref-status" aria-live="polite"></p>
+        <p id="repaso-heard" class="repaso-heard" aria-live="polite"></p>
+        <div id="repaso-verdict" class="repaso-verdict" hidden role="status"></div>
+        <button type="button" id="repaso-answer-mic" class="repaso-btn repaso-btn--answer" disabled>
+          Decir respuesta
+        </button>
+      </div>
+
+      <div class="repaso-actions">
+        <button type="button" id="repaso-speak" class="repaso-btn repaso-btn--speak">Escuchar</button>
+        <button type="button" id="repaso-reveal" class="repaso-btn repaso-btn--reveal">Mostrar traducción</button>
+        <button type="button" id="repaso-next" class="repaso-btn repaso-btn--next">Siguiente</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='ui-sounds.js') }}"></script>
+  <script src="{{ url_for('static', filename='repaso.js') }}"></script>
+</body>
+</html>
