@@ -720,20 +720,6 @@ function mostrar() {
   }
 
   const filtradas = filtrarPalabras(palabrasGlobal, busquedaActual);
-  if (filtradas.length === 0) {
-    lista.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-state-icon" aria-hidden="true">🔎</span>
-        <p>No encontré coincidencias para <strong>${escapeHtml(
-          busquedaActual.trim()
-        )}</strong>. Prueba con otra palabra.</p>
-      </div>
-    `;
-    window.__palabrasStats = palabrasGlobal;
-    if (typeof renderStatsChart === "function") renderStatsChart(palabrasGlobal);
-    if (typeof renderProgressMini === "function") renderProgressMini(palabrasGlobal);
-    return;
-  }
 
   const pendientes = filtradas.filter((p) => !p.aprendido);
   const aprendidas = filtradas.filter((p) => !!p.aprendido);
@@ -848,6 +834,14 @@ function mostrar() {
   ordenadosPendientes.forEach((p, index) => {
     lista.appendChild(renderCard(p, index, false));
   });
+  if (ordenadosPendientes.length === 0) {
+    lista.innerHTML = `
+      <div class="empty-state empty-state--small">
+        <span class="empty-state-icon" aria-hidden="true">🔎</span>
+        <p>No hay pendientes con este filtro. Probá otra búsqueda.</p>
+      </div>
+    `;
+  }
   if (listaAprendidas) {
     if (ordenadasAprendidas.length === 0) {
       listaAprendidas.innerHTML =
