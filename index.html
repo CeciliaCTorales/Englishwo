@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Palabras — Aprende inglés con voz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="theme-cute home-page">
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient__photo"></div>
+    <div class="ambient__veil"></div>
+    <div class="ambient__glow ambient__glow--a"></div>
+    <div class="ambient__glow ambient__glow--b"></div>
+    <div class="ambient__glow ambient__glow--c"></div>
+    <div class="ambient__grid"></div>
+    <div class="ambient__noise"></div>
+    <!-- Dibujos decorativos -->
+    <svg class="ambient__doodle ambient__doodle--stars" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill="currentColor" d="M20 40l2.5 5 5.5.8-4 3.8 1 5.4L20 52l-4.9 2.6 1-5.4-4-3.8 5.5-.8L20 40zm340 20l3 6 6.7 1-4.8 4.6 1.1 6.7L340 74l-6 3.2 1.2-6.7-4.9-4.6 6.7-1L340 60zM180 12l2 4 4.5.7-3.3 3.2.7 4.5-4-2.1-4 2.1.7-4.5-3.3-3.2 4.5-.7L180 12z" opacity=".5"/>
+      <circle cx="320" cy="150" r="3" fill="currentColor" opacity=".35"/>
+      <circle cx="60" cy="160" r="2" fill="currentColor" opacity=".4"/>
+    </svg>
+    <svg class="ambient__doodle ambient__doodle--hearts" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill="currentColor" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".12" transform="scale(.35) translate(80 20)"/>
+      <path fill="currentColor" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".08" transform="scale(.25) translate(380 280)"/>
+    </svg>
+    <!-- Más corazones repartidos (solo inicio) -->
+    <svg class="ambient__doodle ambient__doodle--hearts-scatter" viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill="#fda4af" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".22" transform="translate(8 40) scale(0.14)"/>
+      <path fill="#fbcfe8" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".28" transform="translate(120 12) scale(0.11)"/>
+      <path fill="#f9a8d4" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".2" transform="translate(280 88) scale(0.16)"/>
+      <path fill="#fda4af" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".18" transform="translate(340 200) scale(0.12)"/>
+      <path fill="#fce7f3" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".26" transform="translate(52 210) scale(0.13)"/>
+      <path fill="#fb7185" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".15" transform="translate(190 150) scale(0.1)"/>
+      <path fill="#fda4af" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".2" transform="translate(380 48) scale(0.09)"/>
+      <path fill="#f9a8d4" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".17" transform="translate(240 260) scale(0.11)"/>
+    </svg>
+    <svg class="ambient__doodle ambient__doodle--hearts-float" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill="#fbcfe8" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".2" transform="translate(10 20) scale(0.18)"/>
+      <path fill="#fda4af" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".16" transform="translate(130 100) scale(0.14)"/>
+      <path fill="#fce7f3" d="M100 150c-35-25-60-45-60-75 0-20 15-35 35-35 15 0 25 10 25 10s10-10 25-10c20 0 35 15 35 35 0 30-25 50-60 75z" opacity=".22" transform="translate(60 130) scale(0.12)"/>
+    </svg>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <!-- Carita simple -->
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" fill="#fff5f7" stroke="#fda4af" stroke-width="2"/>
+            <circle cx="11" cy="14" r="2" fill="#7c3aed"/>
+            <circle cx="21" cy="14" r="2" fill="#7c3aed"/>
+            <path d="M12 20c2 2 6 2 8 0" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+        <div>
+          <p class="brand-name">New Words</p>
+          <p class="brand-tagline">By Cecilia Torales ✨🧠 empowered by ChatGPT & Cursor 🌈</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-wrap">
+    <div class="page-layout">
+    <div class="page-layout__main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__layout">
+        <div class="hero__art" aria-hidden="true">
+          <!-- Búho kawaii con libro -->
+          <svg class="hero__mascot" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="owlBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#c4b5fd"/>
+                <stop offset="100%" style="stop-color:#a78bfa"/>
+              </linearGradient>
+              <linearGradient id="bookGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#fda4af"/>
+                <stop offset="100%" style="stop-color:#fb7185"/>
+              </linearGradient>
+            </defs>
+            <!-- orejas -->
+            <path d="M65 45 L55 15 L85 38 Z" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M135 45 L145 15 L115 38 Z" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" stroke-linejoin="round"/>
+            <!-- cuerpo -->
+            <ellipse cx="100" cy="115" rx="62" ry="58" fill="url(#owlBody)" stroke="#6d28d9" stroke-width="2.5"/>
+            <!-- ojos -->
+            <ellipse cx="78" cy="100" rx="22" ry="24" fill="#fff" stroke="#6d28d9" stroke-width="2"/>
+            <ellipse cx="122" cy="100" rx="22" ry="24" fill="#fff" stroke="#6d28d9" stroke-width="2"/>
+            <circle cx="78" cy="102" r="10" fill="#1e1b4b"/>
+            <circle cx="122" cy="102" r="10" fill="#1e1b4b"/>
+            <circle cx="81" cy="99" r="3" fill="#fff"/>
+            <circle cx="125" cy="99" r="3" fill="#fff"/>
+            <!-- pico -->
+            <path d="M100 118 L92 128 L108 128 Z" fill="#fbbf24" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- libro -->
+            <rect x="58" y="138" width="84" height="52" rx="6" fill="url(#bookGrad)" stroke="#be123c" stroke-width="2"/>
+            <line x1="100" y1="138" x2="100" y2="190" stroke="#be123c" stroke-width="2"/>
+            <line x1="68" y1="155" x2="92" y2="155" stroke="#fff" stroke-width="2" opacity=".6"/>
+            <line x1="68" y1="168" x2="88" y2="168" stroke="#fff" stroke-width="2" opacity=".4"/>
+            <!-- patitas -->
+            <ellipse cx="75" cy="178" rx="12" ry="8" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+            <ellipse cx="125" cy="178" rx="12" ry="8" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+          </svg>
+          <p class="hero__bubble">¡Hola! Graba y aprende ✨ 💕</p>
+        </div>
+        <div class="hero__copy">
+          <h1 id="hero-title" class="hero-title">Nuevas palabras en inglés</h1>
+          <p class="hero-lead">Di la <strong>palabra principal</strong> en inglés; puedes seguir con una <strong>frase de ejemplo</strong>. Todo se guarda en un archivo <strong>CSV</strong> en la carpeta <code>data</code>.</p>
+
+          <div class="recorder-panel">
+            <button type="button" id="btn" class="btn-record">
+              <span class="btn-record-icon" aria-hidden="true">🎤</span>
+              <span class="btn-record-label">Grabar</span>
+            </button>
+            <p id="estado" class="estado" role="status" aria-live="polite"></p>
+          </div>
+
+          <div id="ejemplo-sugerido-wrap" class="ejemplo-sugerido-wrap" hidden>
+            <p id="ejemplo-sugerido-title" class="ejemplo-sugerido-wrap__title"></p>
+            <p class="ejemplo-sugerido-wrap__hint">Oración real del diccionario en inglés (la misma fuente que en modo repaso).</p>
+            <div class="ejemplo-sugerido-wrap__actions">
+              <button type="button" id="btn-gen-ejemplo" class="ejemplo-sugerido-wrap__btn ejemplo-sugerido-wrap__btn--primary">
+                Generar oración
+              </button>
+              <button type="button" id="btn-dismiss-ejemplo" class="ejemplo-sugerido-wrap__btn ejemplo-sugerido-wrap__btn--ghost">
+                Ahora no
+              </button>
+            </div>
+            <div id="ejemplo-sugerido-result" class="ejemplo-sugerido-result" hidden>
+              <p id="ejemplo-sugerido-text" class="ejemplo-sugerido-result__text"></p>
+              <div class="ejemplo-sugerido-result__actions">
+                <button type="button" id="btn-save-ejemplo" class="ejemplo-sugerido-wrap__btn ejemplo-sugerido-wrap__btn--primary" disabled>
+                  Guardar en la tarjeta
+                </button>
+                <button type="button" id="btn-otra-ejemplo" class="ejemplo-sugerido-wrap__btn">
+                  Otra frase
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-meta" aria-label="Opcional: se guarda con la próxima grabación">
+            <label class="quick-meta__field">
+              <span class="quick-meta__label">Tema / fuente</span>
+              <input type="text" id="input-tema" placeholder="Ej. podcast, libro…" autocomplete="off">
+            </label>
+            <label class="quick-meta__field">
+              <span class="quick-meta__label">Etiquetas</span>
+              <input type="text" id="input-etiquetas" placeholder="travel, work" autocomplete="off">
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p id="deadline-line" class="deadline-mini" role="status" aria-live="polite"></p>
+
+    <nav class="tools-bar" aria-label="Herramientas">
+      <a class="tools-bar__link" href="/repaso">Modo repaso</a>
+      <a class="tools-bar__link" href="/api/export.csv">Exportar CSV</a>
+      <label class="tools-bar__file">
+        <span class="tools-bar__btn tools-bar__btn--file">Importar CSV</span>
+        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
+      </label>
+      <button type="button" class="tools-bar__btn" id="btn-notify">Recordatorio diario</button>
+      <label class="tools-bar-sound">
+        <input type="checkbox" id="sounds-enabled" checked aria-label="Activar sonidos de la interfaz">
+        <span>Sonidos</span>
+      </label>
+      <label class="tools-bar-sfx-vol">
+        <span class="tools-bar-sfx-vol__label">Volumen</span>
+        <input type="range" id="sfx-volume" value="100">
+      </label>
+    </nav>
+
+    <section class="words-section" aria-labelledby="words-heading">
+      <div class="section-head">
+        <h2 id="words-heading" class="section-title">
+          <span class="section-title__icon" aria-hidden="true">📝</span>
+          Tu lista
+        </h2>
+        <span class="section-hint">Cada fila: palabra + ejemplo · orden por lo más reciente</span>
+      </div>
+      <div class="search-box">
+        <label for="search-words" class="sr-only">Buscar palabra o frase</label>
+        <input
+          type="search"
+          id="search-words"
+          class="search-box__input"
+          placeholder="Buscar palabra o frase (también aproximaciones)"
+          autocomplete="off"
+          spellcheck="false"
+        >
+      </div>
+      <div id="lista" class="lista"></div>
+    </section>
+    </div>
+
+    <aside class="page-layout__side" aria-label="Ranking de palabras guardadas">
+      <div class="side-card">
+        <p class="side-card__title">Tus palabras</p>
+        <p class="side-card__hint">Más repetidas primero · veces que la dijiste</p>
+        <ul id="happy-list" class="happy-list"></ul>
+      </div>
+      <div class="side-card side-card--counter">
+        <p class="side-card__title">Tu progreso</p>
+        <p class="word-counter">
+          <span id="word-count-num" class="word-counter__num">0</span>
+          <span class="word-counter__txt">palabras guardadas</span>
+        </p>
+        <div id="progress-mini-wrap" class="progress-mini">
+          <span class="progress-mini__label">Últimos 7 días</span>
+          <svg id="progress-mini-svg" class="progress-mini__svg" viewBox="0 0 140 34" role="img" aria-labelledby="progress-mini-title" focusable="false">
+            <title id="progress-mini-title">Palabras añadidas por día en la última semana</title>
+          </svg>
+        </div>
+      </div>
+      <div class="side-card side-card--stats" aria-labelledby="stats-heading">
+        <p id="stats-heading" class="side-card__title">Estadísticas</p>
+        <p class="side-card__hint">Palabras añadidas según la fecha guardada · últimos 31 días o 12 meses</p>
+        <div class="stats-granularity" role="group" aria-label="Agrupar por">
+          <label class="stats-granularity__opt">
+            <input type="radio" name="stats-granularity" value="day" checked>
+            <span>Por día</span>
+          </label>
+          <label class="stats-granularity__opt">
+            <input type="radio" name="stats-granularity" value="month">
+            <span>Por mes</span>
+          </label>
+        </div>
+        <p id="stats-chart-empty" class="stats-chart-empty" hidden>No hay datos aún para el gráfico.</p>
+        <div id="stats-chart-wrap" class="stats-chart-wrap" hidden>
+          <canvas id="stats-chart" aria-label="Gráfico de palabras añadidas"></canvas>
+        </div>
+      </div>
+      <div class="side-card side-card--voice">
+        <p class="side-card__title">Lectura en voz</p>
+        <p class="side-card__hint">Afecta a Leer y al modo repaso</p>
+        <label class="voice-field">
+          <span class="voice-field__label">Velocidad</span>
+          <input type="range" id="speech-rate" min="0.6" max="1.2" step="0.02" value="0.92">
+        </label>
+        <label class="voice-field">
+          <span class="voice-field__label">Voz (inglés)</span>
+          <select id="speech-voice" class="voice-field__select"></select>
+        </label>
+      </div>
+    </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-cute">
+        <svg class="footer-sparkle" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l1.8 5.5h5.7l-4.6 3.4 1.8 5.5-4.7-3.4-4.7 3.4 1.8-5.5-4.6-3.4h5.7L12 2z"/></svg>
+        Hecho para aprender con alegría by Cecilia Torales· <span class="footer-accent">English vocabulary</span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='stats-chart.js') }}"></script>
+  <script src="{{ url_for('static', filename='ui-sounds.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
