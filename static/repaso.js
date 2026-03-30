@@ -197,7 +197,7 @@ async function prefetchExpectedTranslation(p) {
   btnAnswerMic.disabled = true;
   elRefStatus.textContent = "Preparando referencia…";
   try {
-    const res = await fetch("/traducir", {
+    const res = await fetch("traducir", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ texto: w }),
@@ -356,7 +356,7 @@ function textoParaTraducirRepaso() {
 
 async function fetchDictionaryLine(w) {
   const res = await fetch(
-    `/api/ejemplo-aleatorio?${new URLSearchParams({ w })}`
+    `api/ejemplo-aleatorio?${new URLSearchParams({ w })}`
   );
   return res.json().catch(() => ({}));
 }
@@ -487,7 +487,7 @@ async function reveal() {
   btnReveal.disabled = true;
   btnReveal.textContent = "…";
   try {
-    const res = await fetch("/traducir", {
+    const res = await fetch("traducir", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ texto }),
@@ -609,26 +609,36 @@ if (window.speechSynthesis) {
   window.speechSynthesis.addEventListener("voiceschanged", () => {});
 }
 
-fetch("/api/palabras")
-  .then((r) => r.json())
-  .then((data) => {
-    const all = data.ok && Array.isArray(data.data) ? data.data : [];
-    const tag = paramsTag();
-    const filt = tagFilter(tag);
-    const list = all.filter((p) => (p.palabra || "").trim() && filt(p));
-    if (tag) {
-      elFilter.textContent = `Filtro: etiqueta «${tag}»`;
-      elFilter.hidden = false;
-    }
-    if (list.length === 0) {
-      elEmpty.hidden = false;
-      return;
-    }
-    queue = shuffle(list);
-    nextCard();
-  })
-  .catch(() => {
+function loadRepasoPalabras(data) {
+  const all = data.ok && Array.isArray(data.data) ? data.data : [];
+  const tag = paramsTag();
+  const filt = tagFilter(tag);
+  const list = all.filter((p) => (p.palabra || "").trim() && filt(p));
+  if (tag) {
+    elFilter.textContent = `Filtro: etiqueta «${tag}»`;
+    elFilter.hidden = false;
+  }
+  if (list.length === 0) {
     elEmpty.hidden = false;
-    elEmpty.querySelector("p").textContent =
-      "No se pudo cargar la lista. ¿Está el servidor en marcha?";
-  });
+    return;
+  }
+  queue = shuffle(list);
+  nextCard();
+}
+
+fetch("api/palabras")
+  .then((r) => {
+    if (!r.ok) throw new Error("no api");
+    return r.json();
+  })
+  .then(loadRepasoPalabras)
+  .catch(() =>
+    fetch("api/palabras.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(loadRepasoPalabras)
+      .catch(() => {
+        elEmpty.hidden = false;
+        elEmpty.querySelector("p").textContent =
+          "No se pudo cargar la lista. En GitHub Pages usá api/palabras.json o abrí el sitio con Flask.";
+      })
+  );

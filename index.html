@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="static/styles.css">
 </head>
 <body class="theme-cute home-page">
   <div class="ambient" aria-hidden="true">
@@ -112,6 +112,7 @@
         <div class="hero__copy">
           <h1 id="hero-title" class="hero-title">Nuevas palabras en inglés</h1>
           <p class="hero-lead">Di la <strong>palabra principal</strong> en inglés; puedes seguir con una <strong>frase de ejemplo</strong>. Todo se guarda en un archivo <strong>CSV</strong> en la carpeta <code>data</code>.</p>
+          <p class="hero-quote-en notranslate" lang="en" translate="no">There are only a few hearts left in Greece.</p>
 
           <div class="recorder-panel">
             <button type="button" id="btn" class="btn-record">
@@ -162,8 +163,8 @@
     <p id="deadline-line" class="deadline-mini" role="status" aria-live="polite"></p>
 
     <nav class="tools-bar" aria-label="Herramientas">
-      <a class="tools-bar__link" href="/repaso">Modo repaso</a>
-      <a class="tools-bar__link" href="/api/export.csv">Exportar CSV</a>
+      <a class="tools-bar__link" href="repaso.html">Modo repaso</a>
+      <a class="tools-bar__link" href="api/export.csv">Exportar CSV</a>
       <label class="tools-bar__file">
         <span class="tools-bar__btn tools-bar__btn--file">Importar CSV</span>
         <input type="file" id="import-file" accept=".csv,text/csv" hidden>
@@ -265,8 +266,8 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-  <script src="{{ url_for('static', filename='stats-chart.js') }}"></script>
-  <script src="{{ url_for('static', filename='ui-sounds.js') }}"></script>
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="static/stats-chart.js"></script>
+  <script src="static/ui-sounds.js"></script>
+  <script src="static/app.js"></script>
 </body>
 </html>

@@ -575,6 +575,19 @@ body {
   animation: slide-fade-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.14s forwards;
 }
 
+.hero-quote-en {
+  margin: -0.75rem auto 1.35rem;
+  max-width: 36rem;
+  font-size: 0.95rem;
+  font-style: italic;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+  opacity: 0;
+  animation: slide-fade-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+}
+
 .recorder-panel {
   display: inline-flex;
   flex-direction: column;

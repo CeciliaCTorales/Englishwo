@@ -129,7 +129,7 @@ function wireImportExport() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("mode", replace ? "replace" : "merge");
-    fetch("/api/import", { method: "POST", body: fd })
+    fetch("api/import", { method: "POST", body: fd })
       .then((r) => r.json())
       .then((data) => {
         if (data.ok && Array.isArray(data.data)) {
@@ -327,7 +327,7 @@ async function generarEjemploSugerido() {
   if (otra) otra.disabled = true;
   try {
     const r = await fetch(
-      `/api/ejemplo-aleatorio?${new URLSearchParams({
+      `api/ejemplo-aleatorio?${new URLSearchParams({
         w: (p.palabra || "").trim(),
       })}`
     );
@@ -366,7 +366,7 @@ async function generarEjemploSugerido() {
 function guardarEjemploSugerido() {
   if (!pendingEjemploId || !textoEjemploGenerado) return;
   sfx("tap");
-  fetch(`/editar/${pendingEjemploId}`, {
+  fetch(`editar/${pendingEjemploId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ejemplo: textoEjemploGenerado }),
@@ -419,7 +419,7 @@ function metaFromForm() {
 
 function enviar(texto, force) {
   const { tema, etiquetas } = metaFromForm();
-  fetch("/procesar", {
+  fetch("procesar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ texto, force: !!force, tema, etiquetas }),
@@ -617,7 +617,7 @@ function toggleTraduccion(btn, wrap, textEl, palabra) {
   btn.disabled = true;
   btn.textContent = "…";
 
-  fetch("/traducir", {
+  fetch("traducir", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ texto: w }),
@@ -670,7 +670,7 @@ function escapeAttr(s) {
 }
 
 function borrar(id) {
-  fetch(`/borrar/${id}`, { method: "DELETE" })
+  fetch(`borrar/${id}`, { method: "DELETE" })
     .then((res) => res.json())
     .then((data) => {
       palabrasGlobal = data.data;
@@ -712,7 +712,7 @@ function activarEdicion(div, p) {
     const nuevoTema = div.querySelector("#tema").value;
     const nuevasEtiquetas = div.querySelector("#etiquetas").value;
 
-    fetch(`/editar/${p.id}`, {
+    fetch(`editar/${p.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -850,12 +850,22 @@ function renderHappyRanking() {
     .join("");
 }
 
-fetch("/api/palabras")
-  .then((r) => r.json())
+fetch("api/palabras")
+  .then((r) => {
+    if (!r.ok) throw new Error("no api");
+    return r.json();
+  })
   .then((data) => {
     if (data.ok && Array.isArray(data.data)) palabrasGlobal = data.data;
   })
-  .catch(() => {})
+  .catch(() =>
+    fetch("api/palabras.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => {
+        if (data.ok && Array.isArray(data.data)) palabrasGlobal = data.data;
+      })
+      .catch(() => {})
+  )
   .finally(() => {
     mostrar();
     actualizarCuentaRegresiva();
