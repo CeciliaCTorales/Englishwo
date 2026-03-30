@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aprendidas — Palabras</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/styles.css">
+</head>
+<body class="theme-cute home-page">
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient__photo"></div>
+    <div class="ambient__veil"></div>
+    <div class="ambient__glow ambient__glow--a"></div>
+    <div class="ambient__glow ambient__glow--b"></div>
+    <div class="ambient__glow ambient__glow--c"></div>
+    <div class="ambient__grid"></div>
+    <div class="ambient__noise"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">🎓</span>
+        <div>
+          <p class="brand-name">Palabras aprendidas</p>
+          <p class="brand-tagline">Tu archivo de palabras dominadas</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-wrap">
+    <nav class="tools-bar" aria-label="Navegación">
+      <a class="tools-bar__link" href="index.html">Inicio</a>
+      <a class="tools-bar__link" href="repaso.html">Modo repaso</a>
+      <a class="tools-bar__link" href="aprendidas.html" aria-current="page">Palabras aprendidas</a>
+    </nav>
+
+    <section class="words-section" aria-labelledby="aprendidas-heading">
+      <div class="section-head">
+        <h2 id="aprendidas-heading" class="section-title">
+          <span class="section-title__icon" aria-hidden="true">✨</span>
+          Archivo de aprendidas
+        </h2>
+        <span id="aprendidas-count" class="section-hint">0 palabras</span>
+      </div>
+      <div id="lista-aprendidas-page" class="lista"></div>
+    </section>
+  </main>
+
+  <script src="static/palabras-static.js"></script>
+  <script src="static/ui-sounds.js"></script>
+  <script src="static/aprendidas.js"></script>
+</body>
+</html>

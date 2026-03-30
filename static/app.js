@@ -11,6 +11,7 @@ let textoEjemploGenerado = "";
 
 const LS_RATE = "palabras_speech_rate";
 const LS_VOICE = "palabras_speech_voice";
+const LS_LAST_UPDATE = "palabras_last_update_at";
 
 const btn = document.getElementById("btn");
 
@@ -35,6 +36,40 @@ function getSpeechRate() {
 
 function setSpeechRate(v) {
   localStorage.setItem(LS_RATE, String(v));
+}
+
+function formatDateTimeES(d) {
+  return d.toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function renderBrandLastUpdate() {
+  const el = document.getElementById("brand-last-update");
+  if (!el) return;
+  const baseText =
+    (el.getAttribute("data-base-text") || "").trim() ||
+    "By Cecilia Torales ✨🧠 empowered by ChatGPT & Cursor 🌈";
+  const raw = localStorage.getItem(LS_LAST_UPDATE);
+  if (!raw) {
+    el.textContent = `${baseText} - Last updated --/--/---- --:--`;
+    return;
+  }
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) {
+    el.textContent = `${baseText} - Last updated --/--/---- --:--`;
+    return;
+  }
+  el.textContent = `${baseText} - Last updated ${formatDateTimeES(d)}`;
+}
+
+function touchLastUpdate() {
+  localStorage.setItem(LS_LAST_UPDATE, new Date().toISOString());
+  renderBrandLastUpdate();
 }
 
 function pickEnglishVoice() {
@@ -166,6 +201,7 @@ function wireImportExport() {
             staticStore
           );
           mostrar();
+          touchLastUpdate();
           estado(`Datos importados sin borrar existentes (${palabrasGlobal.length} en total)`);
           sfx("success");
         } catch {
@@ -189,6 +225,7 @@ function wireImportExport() {
         if (data.ok && Array.isArray(data.data)) {
           palabrasGlobal = data.data;
           mostrar();
+          touchLastUpdate();
           estado(`Importadas ${data.imported ?? 0} filas sin borrar las anteriores`);
           sfx("success");
         } else {
@@ -481,6 +518,7 @@ function guardarEjemploSugerido() {
       staticStore
     );
     mostrar();
+    touchLastUpdate();
     estado("Oración guardada (en el navegador)");
     sfx("success");
     hideEjemploSugerido();
@@ -496,6 +534,7 @@ function guardarEjemploSugerido() {
       if (data.ok && Array.isArray(data.data)) {
         palabrasGlobal = data.data;
         mostrar();
+        touchLastUpdate();
         estado("Oración guardada en la tarjeta");
         sfx("success");
         hideEjemploSugerido();
@@ -625,6 +664,7 @@ function enviarSinServidor(texto, force) {
     staticStore
   );
   mostrar();
+  touchLastUpdate();
   estado(
     modoEstatico
       ? "Guardado en este navegador (GitHub Pages no tiene servidor)"
@@ -673,6 +713,7 @@ function enviar(texto, force) {
       }
       palabrasGlobal = data.data;
       mostrar();
+      touchLastUpdate();
       estado("Guardado");
       sfx("success");
       offerEjemploSugeridoSiFalta(data.data);
@@ -890,6 +931,7 @@ function marcarAprendida(id, aprendido) {
       staticStore
     );
     mostrar();
+    touchLastUpdate();
     if (aprendido) triggerConfetti();
     estado(aprendido ? "Archivada como aprendida ✨" : "Regresó a pendientes");
     return;
@@ -904,6 +946,7 @@ function marcarAprendida(id, aprendido) {
       if (data.ok && Array.isArray(data.data)) {
         palabrasGlobal = data.data;
         mostrar();
+        touchLastUpdate();
         if (aprendido) triggerConfetti();
         estado(aprendido ? "Archivada como aprendida ✨" : "Regresó a pendientes");
       }
@@ -1011,6 +1054,7 @@ function borrar(id) {
       staticStore
     );
     mostrar();
+    touchLastUpdate();
     sfx("pop");
     return;
   }
@@ -1019,6 +1063,7 @@ function borrar(id) {
     .then((data) => {
       palabrasGlobal = data.data;
       mostrar();
+      touchLastUpdate();
       sfx("pop");
     });
 }
@@ -1081,6 +1126,7 @@ function activarEdicion(div, p) {
         staticStore
       );
       mostrar();
+      touchLastUpdate();
       sfx("success");
       return;
     }
@@ -1099,6 +1145,7 @@ function activarEdicion(div, p) {
       .then((data) => {
         palabrasGlobal = data.data;
         mostrar();
+        touchLastUpdate();
         sfx("success");
       })
       .catch(() => sfx("fail"));
@@ -1272,6 +1319,7 @@ function renderHappyRanking() {
   wireSoundToggle();
   wireSfxVolume();
   wireEjemploSugerido();
+  renderBrandLastUpdate();
   // recordatorios desactivados a pedido del usuario
 })();
 

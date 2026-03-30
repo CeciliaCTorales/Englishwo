@@ -455,6 +455,16 @@ def repaso_html():
     return render_template("repaso.html")
 
 
+@app.route("/aprendidas")
+def aprendidas():
+    return render_template("aprendidas.html")
+
+
+@app.route("/aprendidas.html")
+def aprendidas_html():
+    return render_template("aprendidas.html")
+
+
 @app.route("/api/palabras")
 def api_palabras():
     return jsonify({"ok": True, "data": palabras})

@@ -60,7 +60,7 @@
         </span>
         <div>
           <p class="brand-name">New Words</p>
-          <p class="brand-tagline">By Cecilia Torales ✨🧠 empowered by ChatGPT & Cursor 🌈</p>
+          <p class="brand-tagline" id="brand-last-update" data-base-text="By Cecilia Torales ✨🧠 empowered by ChatGPT &amp; Cursor 🌈">By Cecilia Torales ✨🧠 empowered by ChatGPT &amp; Cursor 🌈 - Last updated --/--/---- --:--</p>
         </div>
       </div>
     </div>
@@ -162,12 +162,10 @@
     <p id="deadline-line" class="deadline-mini" role="status" aria-live="polite"></p>
 
     <nav class="tools-bar" aria-label="Herramientas">
+      <a class="tools-bar__link" href="index.html" aria-current="page">Inicio</a>
       <a class="tools-bar__link" href="repaso.html">Modo repaso</a>
+      <a class="tools-bar__link" href="aprendidas.html">Palabras aprendidas</a>
       <a class="tools-bar__link" href="api/export.csv">Exportar datos</a>
-      <label class="tools-bar__file">
-        <span class="tools-bar__btn tools-bar__btn--file">Importar datos</span>
-        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
-      </label>
       <label class="tools-bar-sound">
         <input type="checkbox" id="sounds-enabled" checked aria-label="Activar sonidos de la interfaz">
         <span>Sonidos</span>
@@ -198,15 +196,6 @@
         >
       </div>
       <div id="lista" class="lista"></div>
-
-      <div class="section-head section-head--learned">
-        <h2 id="words-learned-heading" class="section-title">
-          <span class="section-title__icon" aria-hidden="true">🎓</span>
-          Aprendidas
-        </h2>
-        <span class="section-hint">Aquí se archivan las palabras que ya dominás</span>
-      </div>
-      <div id="lista-aprendidas" class="lista lista--learned"></div>
     </section>
     </div>
 
