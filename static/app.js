@@ -3,6 +3,7 @@ let grabando = false;
 let textoAcumulado = "";
 let palabrasGlobal = [];
 let modoEstatico = false;
+let modoFirebase = false;
 let staticStore = { additions: [], deletedIds: new Set(), edits: {} };
 let palabrasBaseCsv = [];
 let busquedaActual = "";
@@ -14,6 +15,15 @@ const LS_VOICE = "palabras_speech_voice";
 const LS_LAST_UPDATE = "palabras_last_update_at";
 
 const btn = document.getElementById("btn");
+
+function modoNube() {
+  return (
+    window.PalabrasFirebase &&
+    typeof window.PalabrasFirebase.isConfigured === "function" &&
+    window.PalabrasFirebase.isConfigured() &&
+    window.PalabrasFirebase.getCurrentUser()
+  );
+}
 
 function sfx(name) {
   const U = window.UISounds;
@@ -498,6 +508,26 @@ function guardarEjemploSugerido() {
   if (!pendingEjemploId || !textoEjemploGenerado) return;
   sfx("tap");
   const pid = Number(pendingEjemploId);
+  if (modoNube()) {
+    const row = palabrasGlobal.find((x) => Number(x.id) === pid);
+    if (!row) return;
+    window.PalabrasFirebase.upsertPalabra({
+      ...row,
+      ejemplo: textoEjemploGenerado,
+    })
+      .then(() => {
+        mostrar();
+        touchLastUpdate();
+        estado("Oración guardada en la nube");
+        sfx("success");
+        hideEjemploSugerido();
+      })
+      .catch(() => {
+        estado("No se pudo guardar en Firebase");
+        sfx("fail");
+      });
+    return;
+  }
   if (modoEstatico && window.PalabrasStatic) {
     const idx = staticStore.additions.findIndex((a) => a.id === pid);
     if (idx >= 0) {
@@ -656,6 +686,7 @@ function enviarSinServidor(texto, force) {
     fecha: fechaHoyES(),
     tema: tema.trim(),
     etiquetas: etiquetas.trim(),
+    aprendido: false,
   };
   staticStore.additions.push(entry);
   window.PalabrasStatic.persist(staticStore);
@@ -674,7 +705,59 @@ function enviarSinServidor(texto, force) {
   offerEjemploSugeridoSiFalta(palabrasGlobal);
 }
 
+async function enviarFirebase(texto, force) {
+  const { tema, etiquetas } = metaFromForm();
+  const raw = String(texto || "").trim();
+  const [palabra, ejemplo] = splitTextoComoServidor(raw);
+  if (!palabra) {
+    estado("No quedó texto reconocido. Volvé a grabar o probá en un lugar más silencioso.");
+    sfx("fail");
+    return;
+  }
+  const key = palabra.toLowerCase();
+  if (!force) {
+    const count = palabrasGlobal.filter(
+      (p) => (p.palabra || "").trim().toLowerCase() === key
+    ).length;
+    if (count > 0) {
+      const ok = window.confirm(
+        `Ya tenés ${count} entrada(s) con «${palabra}». ¿Añadir otra igual?`
+      );
+      if (!ok) {
+        estado("No guardado (duplicado)");
+        sfx("tap");
+        return;
+      }
+    }
+  }
+  const id = nextIdPalabra();
+  const entry = {
+    id,
+    palabra,
+    ejemplo,
+    dicho: raw,
+    fecha: fechaHoyES(),
+    tema: (tema || "").trim(),
+    etiquetas: (etiquetas || "").trim(),
+    aprendido: false,
+  };
+  try {
+    await window.PalabrasFirebase.upsertPalabra(entry);
+    touchLastUpdate();
+    estado("Guardado en la nube (Firebase)");
+    sfx("success");
+    offerEjemploSugeridoSiFalta([...palabrasGlobal, entry]);
+  } catch {
+    estado("No se pudo guardar en Firebase");
+    sfx("fail");
+  }
+}
+
 function enviar(texto, force) {
+  if (modoNube()) {
+    enviarFirebase(texto, force);
+    return;
+  }
   if (modoEstatico) {
     enviarSinServidor(texto, force);
     return;
@@ -914,6 +997,26 @@ function marcarAprendida(id, aprendido) {
       }
     }
   };
+  if (modoNube()) {
+    const row = palabrasGlobal.find((x) => Number(x.id) === nid);
+    if (!row) return;
+    window.PalabrasFirebase.upsertPalabra({
+      ...row,
+      aprendido: !!aprendido,
+    })
+      .then(() => {
+        touchLastUpdate();
+        if (aprendido) triggerConfetti();
+        estado(
+          aprendido ? "Archivada como aprendida ✨" : "Regresó a pendientes"
+        );
+      })
+      .catch(() => {
+        estado("No se pudo mover la palabra");
+        sfx("fail");
+      });
+    return;
+  }
   if (modoEstatico && window.PalabrasStatic) {
     const idx = staticStore.additions.findIndex((a) => Number(a.id) === nid);
     if (idx >= 0) {
@@ -1038,6 +1141,18 @@ function escapeAttr(s) {
 
 function borrar(id) {
   const nid = Number(id);
+  if (modoNube()) {
+    window.PalabrasFirebase.deletePalabra(nid)
+      .then(() => {
+        touchLastUpdate();
+        sfx("pop");
+      })
+      .catch(() => {
+        estado("No se pudo borrar en Firebase");
+        sfx("fail");
+      });
+    return;
+  }
   if (modoEstatico && window.PalabrasStatic) {
     let removed = false;
     staticStore.additions = staticStore.additions.filter((a) => {
@@ -1101,6 +1216,22 @@ function activarEdicion(div, p) {
     const nuevoTema = div.querySelector("#tema").value;
     const nuevasEtiquetas = div.querySelector("#etiquetas").value;
 
+    if (modoNube()) {
+      window.PalabrasFirebase.upsertPalabra({
+        ...p,
+        palabra: nuevaPalabra,
+        ejemplo: nuevoEjemplo,
+        tema: nuevoTema,
+        etiquetas: nuevasEtiquetas,
+      })
+        .then(() => {
+          mostrar();
+          touchLastUpdate();
+          sfx("success");
+        })
+        .catch(() => sfx("fail"));
+      return;
+    }
     if (modoEstatico && window.PalabrasStatic) {
       const pid = Number(p.id);
       const idx = staticStore.additions.findIndex((a) => a.id === pid);
@@ -1287,6 +1418,17 @@ function renderHappyRanking() {
     } catch (err) {
       console.warn("loadInitial", err);
     }
+    window.__exportPalabrasForFirebase = function () {
+      return palabrasGlobal.map(function (p) {
+        return Object.assign({}, p);
+      });
+    };
+    window.__applyFirebasePalabras = function (list) {
+      modoFirebase = true;
+      modoEstatico = false;
+      palabrasGlobal = Array.isArray(list) ? list : [];
+      mostrar();
+    };
   } else {
     try {
       const r = await fetch("api/palabras");
@@ -1308,6 +1450,17 @@ function renderHappyRanking() {
         /* */
       }
     }
+    window.__exportPalabrasForFirebase = function () {
+      return palabrasGlobal.map(function (p) {
+        return Object.assign({}, p);
+      });
+    };
+    window.__applyFirebasePalabras = function (list) {
+      modoFirebase = true;
+      modoEstatico = false;
+      palabrasGlobal = Array.isArray(list) ? list : [];
+      mostrar();
+    };
   }
 
   mostrar();

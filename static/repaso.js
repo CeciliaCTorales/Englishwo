@@ -639,6 +639,25 @@ function startRepasoWithList(all) {
 }
 
 (async function cargarRepaso() {
+  if (window.PalabrasFirebase?.isConfigured?.()) {
+    await window.PalabrasFirebase.whenAuthReady();
+    window.PalabrasFirebase.subscribePalabras(function (list) {
+      startRepasoWithList(Array.isArray(list) ? list : []);
+    });
+    if (!window.PalabrasFirebase.getCurrentUser()) {
+      if (window.PalabrasStatic && window.PalabrasStatic.loadInitial) {
+        try {
+          const r = await window.PalabrasStatic.loadInitial();
+          startRepasoWithList(Array.isArray(r.palabras) ? r.palabras : []);
+        } catch {
+          elEmpty.hidden = false;
+          elEmpty.querySelector("p").textContent =
+            "No se pudo cargar la lista. Revisá data/palabras.csv en el repositorio.";
+        }
+      }
+    }
+    return;
+  }
   if (window.PalabrasStatic && window.PalabrasStatic.loadInitial) {
     try {
       const r = await window.PalabrasStatic.loadInitial();

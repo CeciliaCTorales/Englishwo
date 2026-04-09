@@ -63,6 +63,11 @@
           <p class="brand-tagline" id="brand-last-update" data-base-text="By Cecilia Torales ✨🧠 empowered by ChatGPT &amp; Cursor 🌈">By Cecilia Torales ✨🧠 empowered by ChatGPT &amp; Cursor 🌈 - Last updated --/--/---- --:--</p>
         </div>
       </div>
+      <div class="firebase-auth" aria-label="Cuenta y sincronización">
+        <span class="firebase-auth__status" data-firebase-auth-status></span>
+        <button type="button" class="firebase-auth__btn" data-firebase-signin>Entrar con Google</button>
+        <button type="button" class="firebase-auth__btn" data-firebase-signout hidden>Salir</button>
+      </div>
     </div>
   </header>
 
@@ -262,6 +267,11 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="static/firebase-config.js"></script>
+  <script src="static/firebase-sync.js"></script>
   <script src="static/palabras-static.js"></script>
   <script src="static/stats-chart.js"></script>
   <script src="static/ui-sounds.js"></script>

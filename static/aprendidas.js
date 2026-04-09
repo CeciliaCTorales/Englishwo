@@ -3,6 +3,15 @@ let modoEstatico = false;
 let staticStore = { additions: [], deletedIds: new Set(), edits: {} };
 let palabrasBaseCsv = [];
 
+function modoNube() {
+  return (
+    window.PalabrasFirebase &&
+    typeof window.PalabrasFirebase.isConfigured === "function" &&
+    window.PalabrasFirebase.isConfigured() &&
+    window.PalabrasFirebase.getCurrentUser()
+  );
+}
+
 function escapeHtml(s) {
   const d = document.createElement("div");
   d.textContent = s ?? "";
@@ -88,6 +97,14 @@ function renderAprendidas() {
 
 function marcarAprendida(id, aprendido) {
   const nid = Number(id);
+  if (modoNube()) {
+    const row = palabrasGlobal.find((x) => Number(x.id) === nid);
+    if (!row) return;
+    window.PalabrasFirebase.upsertPalabra({ ...row, aprendido: !!aprendido })
+      .then(() => renderAprendidas())
+      .catch(() => {});
+    return;
+  }
   if (modoEstatico && window.PalabrasStatic) {
     const idx = staticStore.additions.findIndex((a) => Number(a.id) === nid);
     if (idx >= 0) {
@@ -118,6 +135,35 @@ function marcarAprendida(id, aprendido) {
 }
 
 (async function initAprendidas() {
+  if (window.PalabrasFirebase?.isConfigured?.()) {
+    await window.PalabrasFirebase.whenAuthReady();
+    window.PalabrasFirebase.subscribePalabras(function (list) {
+      palabrasGlobal = Array.isArray(list) ? list : [];
+      modoEstatico = false;
+      renderAprendidas();
+    });
+    if (!window.PalabrasFirebase.getCurrentUser()) {
+      if (window.PalabrasStatic && window.PalabrasStatic.loadInitial) {
+        try {
+          const r = await window.PalabrasStatic.loadInitial();
+          modoEstatico = !!r.modoEstatico;
+          palabrasGlobal = Array.isArray(r.palabras) ? r.palabras : [];
+          palabrasBaseCsv = Array.isArray(r.baseCsv) ? r.baseCsv : [];
+          staticStore = r.store || staticStore;
+          if (!(staticStore.deletedIds instanceof Set)) {
+            staticStore.deletedIds = new Set(
+              Array.isArray(staticStore.deletedIds) ? staticStore.deletedIds : []
+            );
+          }
+        } catch {
+          /* */
+        }
+      }
+      renderAprendidas();
+    }
+    return;
+  }
+
   if (window.PalabrasStatic && window.PalabrasStatic.loadInitial) {
     const r = await window.PalabrasStatic.loadInitial();
     modoEstatico = !!r.modoEstatico;
