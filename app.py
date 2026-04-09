@@ -465,16 +465,6 @@ def aprendidas_html():
     return render_template("aprendidas.html")
 
 
-@app.route("/estructuras")
-def estructuras():
-    return render_template("estructuras.html")
-
-
-@app.route("/estructuras.html")
-def estructuras_html():
-    return render_template("estructuras.html")
-
-
 @app.route("/api/palabras")
 def api_palabras():
     return jsonify({"ok": True, "data": palabras})
